@@ -6,6 +6,7 @@ import { ProductFormModal } from '../components/ProductFormModal';
 export const InventoryView = () => {
   const { products, deleteProduct } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
+  const [stockFilter, setStockFilter] = useState('all'); // 'all', 'low'
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState(null);
 
@@ -13,10 +14,16 @@ export const InventoryView = () => {
   const totalStockItems = products.reduce((acc, p) => acc + (p.stock || 0), 0);
   const totalStockValue = products.reduce((acc, p) => acc + ((p.stock || 0) * (p.price || 0)), 0);
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (p.barcode && p.barcode.includes(searchTerm))
-  );
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (p.barcode && p.barcode.includes(searchTerm));
+    
+    if (stockFilter === 'low') {
+      const isLow = p.stock <= (p.minStock || 5);
+      return matchesSearch && isLow;
+    }
+    return matchesSearch;
+  });
 
   const handleOpenAdd = () => {
     setProductToEdit(null);
@@ -47,13 +54,37 @@ export const InventoryView = () => {
 
       {/* Cards de Resumo do Estoque */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '14px' }}>
-        <div className="card" style={{ padding: '10px', textAlign: 'center', marginBottom: 0 }}>
+        <div 
+          className="card" 
+          onClick={() => setStockFilter('all')}
+          style={{ 
+            padding: '10px', 
+            textAlign: 'center', 
+            marginBottom: 0,
+            cursor: 'pointer',
+            border: stockFilter === 'all' ? '2px solid var(--primary)' : '1px solid var(--border)',
+            backgroundColor: stockFilter === 'all' ? 'var(--primary-light)' : 'var(--bg-card)',
+            transition: 'all 0.2s ease'
+          }}
+        >
           <Package size={18} color="var(--primary)" style={{ marginBottom: '4px' }} />
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Cadastrados</div>
           <div style={{ fontWeight: 800, fontSize: '1rem' }}>{products.length}</div>
         </div>
 
-        <div className="card" style={{ padding: '10px', textAlign: 'center', marginBottom: 0 }}>
+        <div 
+          className="card" 
+          onClick={() => setStockFilter('low')}
+          style={{ 
+            padding: '10px', 
+            textAlign: 'center', 
+            marginBottom: 0,
+            cursor: 'pointer',
+            border: stockFilter === 'low' ? '2px solid var(--warning)' : '1px solid var(--border)',
+            backgroundColor: stockFilter === 'low' ? 'var(--warning-light)' : 'var(--bg-card)',
+            transition: 'all 0.2s ease'
+          }}
+        >
           <AlertTriangle size={18} color="var(--warning)" style={{ marginBottom: '4px' }} />
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Estoque Baixo</div>
           <div style={{ fontWeight: 800, fontSize: '1rem', color: lowStockCount > 0 ? 'var(--warning)' : 'inherit' }}>
@@ -61,7 +92,7 @@ export const InventoryView = () => {
           </div>
         </div>
 
-        <div className="card" style={{ padding: '10px', textAlign: 'center', marginBottom: 0 }}>
+        <div className="card" style={{ padding: '10px', textAlign: 'center', marginBottom: 0, opacity: 0.9 }}>
           <DollarSign size={18} color="var(--success)" style={{ marginBottom: '4px' }} />
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Valor Total</div>
           <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--success)' }}>
@@ -71,7 +102,7 @@ export const InventoryView = () => {
       </div>
 
       {/* Input de Pesquisa */}
-      <div className="input-group">
+      <div className="input-group" style={{ marginBottom: stockFilter === 'low' ? '8px' : '14px' }}>
         <Search className="input-icon" size={18} />
         <input
           type="text"
@@ -81,6 +112,19 @@ export const InventoryView = () => {
           onChange={e => setSearchTerm(e.target.value)}
         />
       </div>
+
+      {/* Indicador de Filtro Ativo */}
+      {stockFilter === 'low' && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', background: 'var(--warning-light)', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem' }}>
+          <span style={{ color: 'var(--warning)', fontWeight: 700 }}>Exibindo apenas produtos com estoque baixo</span>
+          <button 
+            onClick={() => setStockFilter('all')} 
+            style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer' }}
+          >
+            Ver Todos
+          </button>
+        </div>
+      )}
 
       {/* Lista de Produtos para Edição/Exclusão */}
       <div>
