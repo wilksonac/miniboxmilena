@@ -3,7 +3,7 @@ import { X, Camera, Save, Tag, Package, Barcode } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const ProductFormModal = ({ isOpen, onClose, productToEdit }) => {
-  const { addProduct, updateProduct, openScanner } = useApp();
+  const { addProduct, updateProduct, openScanner, categories } = useApp();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -209,12 +209,9 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit }) => {
               value={formData.category}
               onChange={e => setFormData({ ...formData, category: e.target.value })}
             >
-              <option value="Geral">Geral</option>
-              <option value="Bebidas">Bebidas</option>
-              <option value="Alimentos">Alimentos</option>
-              <option value="Mercearia">Mercearia</option>
-              <option value="Limpeza">Limpeza & Higiene</option>
-              <option value="Outros">Outros</option>
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
             </select>
           </div>
 

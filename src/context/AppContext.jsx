@@ -9,7 +9,9 @@ import {
   doc, 
   serverTimestamp,
   query,
-  orderBy 
+  orderBy,
+  where,
+  getDocs
 } from 'firebase/firestore';
 
 const AppContext = createContext();
@@ -47,16 +49,19 @@ const INITIAL_DEMO_PRODUCTS = [
   }
 ];
 
+const INITIAL_CATEGORIES = ['Geral', 'Bebidas', 'Alimentos', 'Mercearia', 'Limpeza & Higiene', 'Outros'];
+
 export const AppProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [sales, setSales] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('sales'); // sales, inventory, history, settings
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [scannerCallback, setScannerCallback] = useState(null); // Callback when barcode scanned
 
-  // Carregar Produtos e Vendas (do Firestore ou LocalStorage)
+  // Carregar Produtos, Vendas e Categorias (do Firestore ou LocalStorage)
   useEffect(() => {
     if (isConnected && db) {
       // Usando Firebase Firestore
@@ -78,9 +83,30 @@ export const AppProvider = ({ children }) => {
         console.error('Erro ao ler vendas do Firestore:', error);
       });
 
+      const categoriesQuery = query(collection(db, 'categories'), orderBy('name'));
+      const unsubscribeCategories = onSnapshot(categoriesQuery, async (snapshot) => {
+        if (snapshot.empty) {
+          // Inicializa categorias default no Firestore
+          try {
+            for (const cat of INITIAL_CATEGORIES) {
+              await addDoc(collection(db, 'categories'), { name: cat });
+            }
+          } catch (e) {
+            console.error('Erro ao inicializar categorias no Firestore:', e);
+          }
+        } else {
+          const cats = snapshot.docs.map(doc => doc.data().name);
+          const sortedCats = Array.from(new Set(['Geral', ...cats.filter(c => c !== 'Geral').sort()]));
+          setCategories(sortedCats);
+        }
+      }, (error) => {
+        console.error('Erro ao ler categorias do Firestore:', error);
+      });
+
       return () => {
         unsubscribeProducts();
         unsubscribeSales();
+        unsubscribeCategories();
       };
     } else {
       // Usando LocalStorage Fallback
@@ -104,9 +130,18 @@ export const AppProvider = ({ children }) => {
       } else {
         setSales([]);
       }
+
+      const localCats = localStorage.getItem('dniz_categories');
+      if (localCats) {
+        setCategories(JSON.parse(localCats));
+      } else {
+        setCategories(INITIAL_CATEGORIES);
+        localStorage.setItem('dniz_categories', JSON.stringify(INITIAL_CATEGORIES));
+      }
     } catch (e) {
       console.error('Erro no localStorage', e);
       setProducts(INITIAL_DEMO_PRODUCTS);
+      setCategories(INITIAL_CATEGORIES);
     } finally {
       setLoading(false);
     }
@@ -120,6 +155,11 @@ export const AppProvider = ({ children }) => {
   const saveSalesLocal = (newSales) => {
     setSales(newSales);
     localStorage.setItem('dniz_sales', JSON.stringify(newSales));
+  };
+
+  const saveCategoriesLocal = (newCats) => {
+    setCategories(newCats);
+    localStorage.setItem('dniz_categories', JSON.stringify(newCats));
   };
 
   // Funções CRUD de Produtos
@@ -291,10 +331,42 @@ export const AppProvider = ({ children }) => {
     closeScanner();
   };
 
+  const addCategory = async (categoryName) => {
+    const trimmed = categoryName.trim();
+    if (!trimmed || categories.includes(trimmed)) return;
+
+    if (isConnected && db) {
+      await addDoc(collection(db, 'categories'), { name: trimmed });
+    } else {
+      const updated = [...categories, trimmed];
+      saveCategoriesLocal(updated);
+    }
+  };
+
+  const deleteCategory = async (categoryName) => {
+    if (categoryName === 'Geral') return;
+
+    if (isConnected && db) {
+      try {
+        const q = query(collection(db, 'categories'), where('name', '==', categoryName));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach(async (document) => {
+          await deleteDoc(doc(db, 'categories', document.id));
+        });
+      } catch (err) {
+        console.error('Erro ao deletar categoria no Firestore:', err);
+      }
+    } else {
+      const updated = categories.filter(c => c !== categoryName);
+      saveCategoriesLocal(updated);
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       products,
       sales,
+      categories,
       cart,
       loading,
       activeTab,
@@ -304,6 +376,8 @@ export const AppProvider = ({ children }) => {
       addProduct,
       updateProduct,
       deleteProduct,
+      addCategory,
+      deleteCategory,
       addToCart,
       updateCartQty,
       removeFromCart,
