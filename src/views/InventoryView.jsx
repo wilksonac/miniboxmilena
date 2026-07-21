@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Package, AlertTriangle, Barcode, DollarSign } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, AlertTriangle, Barcode } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ProductFormModal } from '../components/ProductFormModal';
 
@@ -93,7 +93,7 @@ export const InventoryView = () => {
         </div>
 
         <div className="card" style={{ padding: '10px', textAlign: 'center', marginBottom: 0, opacity: 0.9 }}>
-          <DollarSign size={18} color="var(--success)" style={{ marginBottom: '4px' }} />
+          <span style={{ color: 'var(--success)', fontWeight: 800, fontSize: '1rem', display: 'inline-block', marginBottom: '6px' }}>R$</span>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Valor Total</div>
           <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--success)' }}>
             R$ {totalStockValue.toFixed(0)}
