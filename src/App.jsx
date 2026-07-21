@@ -57,7 +57,7 @@ const MainApp = () => {
             <ShoppingBag size={20} />
           </div>
           <div>
-            <h1 className="brand-title">DNIZ PDV</h1>
+            <h1 className="brand-title">MINI BOX MILENA</h1>
           </div>
         </div>
 
