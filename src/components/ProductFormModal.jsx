@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Camera, Save, Tag, DollarSign, Package, Barcode } from 'lucide-react';
+import { X, Camera, Save, Tag, Package, Barcode } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const ProductFormModal = ({ isOpen, onClose, productToEdit }) => {
@@ -132,7 +132,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit }) => {
                 Preço Venda (R$) *
               </label>
               <div className="input-group" style={{ marginBottom: 0 }}>
-                <DollarSign className="input-icon" size={18} />
+                <span className="input-icon" style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-muted)' }}>R$</span>
                 <input
                   type="number"
                   step="0.01"
@@ -150,7 +150,7 @@ export const ProductFormModal = ({ isOpen, onClose, productToEdit }) => {
                 Preço Custo (R$)
               </label>
               <div className="input-group" style={{ marginBottom: 0 }}>
-                <DollarSign className="input-icon" size={18} />
+                <span className="input-icon" style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-muted)' }}>R$</span>
                 <input
                   type="number"
                   step="0.01"
