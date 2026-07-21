@@ -34,10 +34,18 @@ export const SalesView = () => {
     }
   });
 
+  const normalizeString = (str) => {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
+
   const categories = ['Todas', ...new Set(products.map(p => p.category || 'Geral'))];
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = normalizeString(p.name).includes(normalizeString(searchTerm)) || 
                           (p.barcode && p.barcode.includes(searchTerm));
     const matchesCat = selectedCategory === 'Todas' || p.category === selectedCategory;
     return matchesSearch && matchesCat;

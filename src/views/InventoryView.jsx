@@ -14,8 +14,16 @@ export const InventoryView = () => {
   const totalStockItems = products.reduce((acc, p) => acc + (p.stock || 0), 0);
   const totalStockValue = products.reduce((acc, p) => acc + ((p.stock || 0) * (p.price || 0)), 0);
 
+  const normalizeString = (str) => {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  };
+
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = normalizeString(p.name).includes(normalizeString(searchTerm)) || 
                           (p.barcode && p.barcode.includes(searchTerm));
     
     if (stockFilter === 'low') {
