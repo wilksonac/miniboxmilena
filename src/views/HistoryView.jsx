@@ -64,6 +64,18 @@ export const HistoryView = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  const parseLocalDate = (dateStr, isEndOfDay = false) => {
+    if (!dateStr) return null;
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const d = new Date(year, month - 1, day);
+    if (isEndOfDay) {
+      d.setHours(23, 59, 59, 999);
+    } else {
+      d.setHours(0, 0, 0, 0);
+    }
+    return d;
+  };
+
   // 1. Filtrar Vendas
   const filteredSales = sales.filter(sale => {
     const timeStr = sale.timestamp || sale.createdAt;
@@ -92,11 +104,8 @@ export const HistoryView = () => {
     
     if (filterType === 'personalizado') {
       if (!startDate) return true;
-      const start = new Date(startDate);
-      start.setHours(0, 0, 0, 0);
-      
-      const end = endDate ? new Date(endDate) : new Date();
-      end.setHours(23, 59, 59, 999);
+      const start = parseLocalDate(startDate, false);
+      const end = parseLocalDate(endDate || startDate, true);
       
       return saleDate >= start && saleDate <= end;
     }
