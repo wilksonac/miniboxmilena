@@ -12,7 +12,15 @@ export function getSavedFirebaseConfig() {
   } catch (e) {
     console.error('Erro ao ler config do Firebase do localStorage', e);
   }
-  
+  const defaultFirebaseConfig = {
+    apiKey: "AIzaSyDX23w2pQfYdP-_lwIVMfXsVMbDnfm7XQw",
+    authDomain: "miniboxmilena-a61c3.firebaseapp.com",
+    projectId: "miniboxmilena-a61c3",
+    storageBucket: "miniboxmilena-a61c3.firebasestorage.app",
+    messagingSenderId: "73079094213",
+    appId: "1:73079094213:web:6061fcb6896c957bb7e9ac"
+  };
+
   // Tenta pegar de variáveis de ambiente se disponíveis
   if (import.meta.env.VITE_FIREBASE_API_KEY) {
     return {
@@ -25,7 +33,7 @@ export function getSavedFirebaseConfig() {
     };
   }
   
-  return null;
+  return defaultFirebaseConfig;
 }
 
 export function saveFirebaseConfig(config) {
